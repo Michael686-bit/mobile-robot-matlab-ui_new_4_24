@@ -21,15 +21,18 @@ if my_alg('is_first_time')
     my_alg('k')             = 1;
     
     %======================Set your goals here=============================
-    my_alg('goal')          = [2    3;...
-                               -4   4;...
-                               -6   0;...
+    my_alg('goal')          = [2    3;
+                               -4   4;
+                               -6   0;
                                0    0];
-
+                            % [4  -2;...
+                            %    8  4 ;
+                            %    6  0;
+                            %    0  0];
     % my_alg('goal')          = [3   4;...
-    %                             5    0 ;...
+    %                            5   0 ;...
     %                            0   -2;...
-    %                            -5   0; 
+    %                           -5   0; 
     %                            0    0];
     %======================================================================    
     
@@ -118,14 +121,14 @@ my_alg('is_done')   = false;
 e_x = goal(K,1) - S(1);
 e_y = goal(K,2) - S(2);
 e_theata = atan2(e_y,e_x) - S(3);
-% K_w = 5;
-% k_turn = 50;
+K_w = 5;
+k_turn = 50;
 
 % K_w = 20;
-% k_turn = 450;
+% k_turn = 250;  % fastest 
 
-K_w = 3.5;
-k_turn = 40;
+% K_w = 3.5;
+% k_turn = 30;
 
 
 K_I = 0.01;
@@ -133,7 +136,7 @@ K_I = 0.01;
 w_l =  (K_w) * sqrt(e_x^2 + e_y^2)+ K_I * e_I  - k_turn * e_theata;%^2
 w_r =  (K_w) * sqrt(e_x^2 + e_y^2)+ K_I * e_I  + k_turn * e_theata;%^2
 
-if sqrt(e_x^2 + e_y^2)<0.1  %renew goal point
+if sqrt(e_x^2 + e_y^2)<0.5  %renew goal point
     K = K + 1;
 end
 
@@ -159,9 +162,9 @@ my_alg('left motor')    = w_l;
 
 %% Apply obstacle avoidance
 if my_alg('Sensor') == 2
-    my_alg = ObstacleAvoidanceLiDAR(my_alg, robot);
+    % my_alg = ObstacleAvoidanceLiDAR(my_alg, robot);
 elseif my_alg('Sensor') == 1 || my_alg('Sensor') == 3
-%    my_alg = ObstacleAvoidanceRange(my_alg, robot);
+    % my_alg = ObstacleAvoidanceRange(my_alg, robot);
 end
 
 %% Display results in GUI

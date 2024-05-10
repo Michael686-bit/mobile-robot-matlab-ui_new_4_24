@@ -35,6 +35,7 @@ function [obj,dt] = Deadreckoning(obj,omegas_map)
     S(1) = S(1) + delta_d * cos(S(3));
     S(2) = S(2) + delta_d * sin(S(3));
     S(3) = S(3) + delta_theata;
+    
 
     H_k = [1 0 -dt * v * sin(S(3));
            0 1  dt * v * cos(S(3));

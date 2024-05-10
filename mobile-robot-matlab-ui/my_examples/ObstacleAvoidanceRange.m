@@ -14,7 +14,7 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
         % Define Maximum positive and negative bearings of servo
         my_alg('max_b')         = 0.9;
         % minimum recorded range at bearing
-        my_alg('min_z')         = [inf;0];
+        my_alg('min_r')         =   0   ; %[inf;0];
         % direction set point
         my_alg('Th_s')          = 0;
         % falg to indicate the application of obstacle avoidance
@@ -25,6 +25,9 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
         my_alg('start_turn')      = 1 ;   % 1 表示没有开启转向初始化
         my_alg('acc_time')      = 0 ;
 
+        my_alg('D_all')      = [0] ;
+
+        my_alg('timer')    =  0 ;
     % ========= Finish initialisation Here ====================================
     % ========= Coursework 2 - Task 3 - Obstacle Avoidance ====================
     % =========================================================================
@@ -63,19 +66,22 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
     % Maximum positive and negative bearings of servo
     max_b               = my_alg('max_b');
     % minimum recorded range at bearing
-    min_z               = my_alg('min_z');
+    min_r               = my_alg('min_r');
     % direction set point
     Th_s                = my_alg('Th_s');
 
     turn            = my_alg('turn');
     velocity            = my_alg('velocity');  
     start_turn            = my_alg('start_turn');
-    acc_time            = my_alg('acc_time');
-
+    acc_time            = my_alg('acc_time');  
+    D_all            = my_alg('D_all');   
+    timer            = my_alg('timer');
 
     % =========================================================================
     %% ======== Coursework 2 - Task 3 - Obstacle Avoidance - laser/sonar ======
     % ========= Start Here ====================================================
+
+    
 
     velocity = 10;
     %Write your code here
@@ -86,6 +92,8 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
      e_x = goal(1) - S(1);
      e_y = goal(2) - S(2);
     % e_I = e_I + sqrt(e_x^2 + e_y^2);
+
+    D_all = [D_all sqrt(e_x^2 + e_y^2)];
     
 
     e_theata = atan2(e_y,e_x) - S(3);
@@ -113,15 +121,15 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
      end
     range_dist;
     
-
+    % turn
 
     if turn == 1
         
         if 1.0 <=range_dist %&& range_dist <1.5 % 右转
     
             servo_motor = -1 ; % 舵机右转60°
-            w_l = +5 + 2;
-            w_r = -5 + 2;
+            w_l = +5 + 3;
+            w_r = -5 + 3;
             
         elseif 0.4 <=range_dist && range_dist <1.0   % 直行
             servo_motor = -1 ;
@@ -131,8 +139,8 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
     
         elseif 0 <=range_dist && range_dist < 0.4 % 左转
             servo_motor = -1 ;
-            w_l = -5 + 2;
-            w_r = +5 + 2;
+            w_l = -5 + 3;
+            w_r = +5 + 3;
             
         % elseif 1.0 < range_dist && range_dist < 2 % 例如，如果检测到距离小于0.5米的障碍物
         % 
@@ -142,13 +150,44 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
         % end
         end
 
+
+        % bug 0;
+       % if abs(e_theata) < 0.2   && turn==1  %1.8 < range_dist
+       %          turn = 0;    %  出循环
+       %          servo_motor = 0;
+       %          start_turn = 1;
+       % end
+
      % e_theata
 
-        if abs(e_theata) < 0.2   && turn==1  %1.8 < range_dist
-            turn = 0;    %  出循环
-            servo_motor = 0;
-            % start_turn 
-        end
+        % bug 1;
+
+        
+     if sqrt(e_x^2 + e_y^2) >  mean(D_all(end-100:end-1)) && turn==1 && timer>17 %1.8 < range_dist D_all(end-15:end-1)
+                turn = 0;    %  出循环
+                servo_motor = 0;
+                start_turn = 1;
+                disp(['distance', num2str(sqrt(e_x^2 + e_y^2))]);
+                disp(['distance_prev', num2str(D_all(end-15:end-1))]);
+     end
+
+     % bug = 1;
+     % switch bug
+     %     case 0
+     % 
+     %        if abs(e_theata) < 0.2   && turn==1  %1.8 < range_dist
+     %            turn = 0;    %  出循环
+     %            servo_motor = 0;
+     %            start_turn = 1;
+     %        end
+     %     case 1
+     %        if sqrt(e_x^2 + e_y^2) < mean(D_all(end-5:end-1))   && turn==1  %1.8 < range_dist
+     %            turn = 0;    %  出循环
+     %            servo_motor = 0;
+     %            start_turn = 1;
+     %            disp(" sqrt(e_x^2 + e_y^2) "sqrt(e_x^2 + e_y^2) )
+     %        end
+     % end
 
     end
 
@@ -172,14 +211,16 @@ function [my_alg] = ObstacleAvoidanceRange(my_alg, robot,delta_t)
     my_alg('right motor')   = w_r;
     my_alg('left motor')    = w_l;
     % Save other data
-    my_alg('min_z')         = min_z;
+    my_alg('min_r')         = min_r;
     my_alg('F')             = F;
     my_alg('Th_s')          = Th_s;
 
     my_alg('turn')          = turn;
     my_alg('velocity')      = velocity;
     my_alg('start_turn')    = start_turn;
-    my_alg('acc_time')      = acc_time;
+    my_alg('acc_time')      = acc_time;  
+    my_alg('D_all')      = D_all;   
+    my_alg('timer')      = timer + delta_t; 
 
 
 end

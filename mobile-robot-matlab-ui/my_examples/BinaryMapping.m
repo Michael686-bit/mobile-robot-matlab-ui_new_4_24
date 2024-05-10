@@ -31,7 +31,7 @@ function my_alg = BinaryMapping(my_alg, robot)
     end
     
 %% Use driveToGoal to move the robot (change to driveToMultipleGoals if necessary)
-    my_alg = driveToGoal(my_alg, robot);
+    % my_alg = driveToGoal(my_alg, robot);
 
 %% Required variables
     % Robot pose estimation [(m) (m) (rad)]'
@@ -56,25 +56,53 @@ function my_alg = BinaryMapping(my_alg, robot)
 
 %Write your code here
 % Convert LiDAR measurements to Cartesian coordinates
-[x_lidar, y_lidar] = pol2cart(Theta, Range);
+% [x_lidar, y_lidar] = pol2cart(Theta, Range);
 
 % Loop over each LiDAR measurement
-for i = 1:length(x_lidar)
+for i = 1:length(Range)
+    if Range(i) == inf
+        Range(i) = 5 ;
+    end
     % Convert LiDAR measurements to global coordinates
-    x_global = S(1) + x_lidar(i) * cos(S(3) + Theta(i));
-    y_global = S(2) + x_lidar(i) * sin(S(3) + Theta(i));
+    x_global = S(1) + Range(i) * cos(S(3) + Theta(i));
+    y_global = S(2) + Range(i) * sin(S(3) + Theta(i));
     
     % Check if the converted coordinates are within the map bounds
     if x_global >= map.ll_corner(1) && x_global <= map.ur_corner(1) && ...
             y_global >= map.ll_corner(2) && y_global <= map.ur_corner(2)
         % Convert global coordinates to grid indices
-        grid_x = round((x_global - map.ll_corner(1)) / map.res) + 1;
-        grid_y = round((y_global - map.ll_corner(2)) / map.res) + 1;
+        grid_x = floor((x_global - map.ll_corner(1)) / map.res) + 1;
+        grid_y = floor((y_global - map.ll_corner(2)) / map.res) + 1;
+
         
         % Update the corresponding cell in the occupancy grid map
-        map.OGrid(grid_y, grid_x) = 1; % Set cell to occupied
+        if Range(i) ~= 5
+            map.OGrid(grid_y, grid_x) = 1; % Set cell to occupied
+        end
+
+
+        for r_nodet = 0:0.01:Range(i)-0.2
+            
+            x_global = S(1) + r_nodet * cos(S(3) + Theta(i));
+            y_global = S(2) + r_nodet * sin(S(3) + Theta(i));
+                
+                % Convert global coordinates to grid indices
+            grid_x = floor((x_global - map.ll_corner(1)) / map.res) + 1;
+            grid_y = floor((y_global - map.ll_corner(2)) / map.res) + 1;
+    
+            
+            % Update the corresponding cell in the occupancy grid map
+            % map.OGrid(grid_y, grid_x) = 1; % Set cell to occupied
+            Prob_m = map.OGrid(grid_y, grid_x);
+            map.OGrid(grid_y, grid_x) = 0; % Set probability of occupancy???
+
+        end
     end
 end
+
+
+% MAP = map.OGrid(grid_y, grid_x)
+
 
 % Update the map object in my_alg
 my_alg('map') = map;
@@ -84,86 +112,7 @@ figure(2), clf
 worldPlot2(map, 1);
 title('Binary Mapping');
 
-% % 移动代码——— ———— ———
-% 
-% % max_range = max(Range);
-% % range_dist = Range(180)
-% %Write your code here
-% 
-% velocity = 10;
-%     %Write your code here
-%     % turn = 0;
-%     out_turn = 1;
-% 
-%      goal = [8  0]';
-%      e_x = goal(1) - S(1);
-%      e_y = goal(2) - S(2);
-%     % e_I = e_I + sqrt(e_x^2 + e_y^2);
-% 
-% 
-%     e_theata = atan2(e_y,e_x) - S(3);
-%     turn ;
-%     start_turn;
-%     delta_t = 0.02;
-% 
-%      if Range(180) < 1.5  && start_turn == 1
-% 
-% 
-%         % servo_motor = -1 ;
-%         % dt   = toc(robot.timestamp);               % Compute Change in time
-%         % set_property(obj, 'timestamp' , tic);               % reset stopwatch
-%         acc_time = acc_time + delta_t;
-%         if acc_time<0.5
-%             w_l = -5 ;
-%             w_r = 5 ;
-% 
-%         else
-%             % servo_motor = -1 ;
-%             turn = 1;
-%             start_turn = 0 ;
-% 
-%         end
-%      end
-%     % range_dist;
-%     dist_60 = Range(240)
-% 
-% 
-%     if turn == 1
-% 
-%         if 1.7 <= Range(240) %&& range_dist <1.5 % 右转
-% 
-%             % servo_motor = -1 ; % 舵机右转60°
-%             w_l = +5 + 2;
-%             w_r = -5 + 2;
-% 
-%         elseif 1.1 <= Range(240) &&  Range(240) <1.7   % 直行
-%             % servo_motor = -1 ;
-%             w_l = +velocity ;
-%             w_r = +velocity ;
-% 
-% 
-%         elseif 0 <=Range(240) && Range(240) < 1.1 % 左转
-%             % servo_motor = -1 ;
-%             w_l = -5 + 2;
-%             w_r = +5 + 2;
-% 
-%         % elseif 1.0 < range_dist && range_dist < 2 % 例如，如果检测到距离小于0.5米的障碍物
-%         % 
-%         %     w_l = -velocity + 1;
-%         %     w_r = velocity + 1;
-%         %     servo_motor = -0.5 ;
-%         % end
-%         end
-% 
-%      % e_theata
-% 
-%         % if abs(e_theata) < 0.2   && turn==1  %1.8 < range_dist
-%         %     turn = 0;    %  出循环
-%         %     % servo_motor = 0;
-%         %     % start_turn 
-%         % end
-% 
-%     end
+
 
 
 % ===== Finish Here =======================================================

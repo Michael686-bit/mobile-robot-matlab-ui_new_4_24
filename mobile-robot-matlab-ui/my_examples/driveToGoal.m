@@ -18,13 +18,13 @@ if my_alg('is_first_time')
     my_alg('left motor')    = 0;
     
     %======================Set your goal here==============================
-    my_alg('goal')= [8  0]'; %;[2 3]'
+    my_alg('goal')= [2 -3]'; %;[2 3]'   [-8  0]'   ********
     % ===================================================================== 
     
     % =================== Set localisation alg ============================
     % =====================================================================
-    % Select 1 for Deadreckoning and 2 for Particle Filter
-    my_alg('localiser_type') = 1;  
+    % Select 1 for Deadreckoning and 2 for Particle Filter                       !!!!
+    my_alg('localiser_type') = 1;      
     % =====================================================================
     % =====================================================================
 
@@ -111,6 +111,10 @@ my_alg('is_done')   = false;
 % =====================================================================
 %% ==== Coursework 1 - Task 3 - Motion Control (Part 1) ===============
 % ===== Start Here ====================================================
+
+
+% w_r = w_sat;
+% w_l = w_sat;
 % K_w = 5;
 % k_turn = 50;
 
@@ -123,9 +127,13 @@ my_alg('e_I') = e_I;
 e_theata = atan2(e_y,e_x) - S(3);
 
 % K_w = 20;
-% k_turn = 450;
+% k_turn = 300;  %  450
 K_w = 10;
 k_turn = 50;
+% K_w = 10;
+% k_turn = 90;
+
+
 K_I = 0.01;
 
 w_l =  (K_w) * sqrt(e_x^2 + e_y^2)+ K_I * e_I  - k_turn * e_theata;%^2
@@ -160,9 +168,13 @@ my_alg('left motor')    = w_l;
 
 %% Apply obstacle avoidance
 if my_alg('Sensor') == 2
-    my_alg = ObstacleAvoidanceLiDAR(my_alg, robot,delta_t);
+    my_alg = ObstacleAvoidanceLiDAR(my_alg, robot); %,delta_t    ObstacleAvoidanceLiDAR_new
+
+    % my_alg = ObstacleAvoidanceLiDAR(my_alg, robot,delta_t);%
 elseif my_alg('Sensor') == 1 || my_alg('Sensor') == 3
-    my_alg = ObstacleAvoidanceRange(my_alg, robot,delta_t);
+    my_alg = ObstacleAvoidanceRange(my_alg, robot,delta_t); %ObstacleAvoidanceRange_LHL_bug1
+    % my_alg = ObstacleAvoidanceRange_LHL_bug1(my_alg, robot);
+
 end
 
 %% Display results in GUI
@@ -175,5 +187,8 @@ my_alg = add_plot(my_alg, 'plot(my_alg(''localizer''))');
 my_alg = add_plot(my_alg, 'plot(my_alg(''path_x''),my_alg(''path_y''),''k--'')');
 % plot Robot covariance circle
 my_alg = add_plot(my_alg, 'plot(my_alg(''obj,cov''))');
+
+% BinaryMapping(my_alg, robot);
+ % ProbabilisticMapping(my_alg, robot);
 
 return

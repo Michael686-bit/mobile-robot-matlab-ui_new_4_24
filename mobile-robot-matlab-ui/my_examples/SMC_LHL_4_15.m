@@ -5,7 +5,7 @@ if my_alg('is_first_time')
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%% Change the trajectory here %%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    my_alg('traj') = load('trajectory_s.txt');
+    my_alg('traj') = load('trajectory_line.txt');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     my_alg('t_loop')        = tic;
     my_alg('k')=1;
@@ -41,6 +41,7 @@ end
 
 omegas_map = containers.Map({'right wheel', 'left wheel'},...
     [my_alg('right encoder'), my_alg('left encoder')]);
+
 my_alg('localizer') = Deadreckoning(my_alg('localizer'),omegas_map);
 
 % Compute change in time (dt)
@@ -51,7 +52,7 @@ vc= my_alg('vc');
 wc= my_alg('wc');
 
 if(my_alg('k')<size(my_alg('traj'),1))
-    k = my_alg('k');
+    k = my_alg('k')
 	
     % Desired trajectory
     x_d =traj(k,1);
